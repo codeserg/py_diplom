@@ -196,6 +196,8 @@ class ProductParameter(models.Model):
             models.UniqueConstraint(fields=['product_info', 'parameter'], name='unique_product_parameter'),
         ]
 
+    def __str__(self):
+        return f"{self.parameter} : {self.value}"
 
 class Contact(models.Model):
     

@@ -1,6 +1,6 @@
 import yaml
 from django.core.management.base import BaseCommand
-from backend.models import Shop, Category, Product, ProductInfo, ProductParameter
+from backend.models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter
 
 class Command(BaseCommand):
     help = 'Import data from YAML file'
@@ -50,7 +50,7 @@ class Command(BaseCommand):
                     'price_rrc': product_data['price_rrc']
                 }
             )
-            """
+            
             # Импорт параметров товара
             if 'parameters' in product_data:
                 for param_name, param_value in product_data['parameters'].items():
@@ -63,4 +63,4 @@ class Command(BaseCommand):
                         parameter=parameter,
                         defaults={'value': str(param_value)}
                     )
-                """
+                
