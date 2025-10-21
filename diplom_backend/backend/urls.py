@@ -4,5 +4,5 @@ from .views import RegisterBuyer
 
 app_name = 'backend'
 urlpatterns = [
-    path('user/register', RegisterBuyer.as_view(), name='buyer-register'),
+    path('user/register', RegisterBuyer.as_view(), name='register-buyer'),
 ]

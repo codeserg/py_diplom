@@ -5,7 +5,7 @@ import json
 
 # Настройки
 BASE_URL = 'http://localhost:8000'
-REGISTER_URL = f'{BASE_URL}/api/register/'
+REGISTER_URL = f'{BASE_URL}/api/v1/user/register'
 
 def test_registration():
     """Тест успешной регистрации"""
