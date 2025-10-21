@@ -33,12 +33,14 @@ class RegisterBuyer(APIView):
             )
         
         # Создание пользователя
+        # Подтверждение по email убрано. Сразу активный
         user = User.objects.create(
             first_name=request.data['first_name'],
             last_name=request.data['last_name'],
             email=request.data['email'],
             company=request.data['company'],
-            position=request.data['position']
+            position=request.data['position'],
+            is_active=True
         )
         user.set_password(request.data['password'])
         user.save()
