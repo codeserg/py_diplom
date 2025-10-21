@@ -1,0 +1,22 @@
+shop: DNS
+categories:
+  - id: 1
+    name: Электроника
+  - id: 2  
+    name: Книги
+goods:
+  - id: 1
+    name: iPhone 13
+    category: 1
+    price: 79990
+    price_rrc: 79990
+    quantity: 5
+    parameters:
+      память: 128GB
+      цвет: синий
+  - id: 2
+    name: Python для начинающих
+    category: 2
+    price: 1200
+    price_rrc: 1200
+    quantity: 10

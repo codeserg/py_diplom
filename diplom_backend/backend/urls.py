@@ -1,9 +1,11 @@
 from django.urls import path
 
-from .views import BuyerRegister,BuyerLogin
+from .views import AccountRegister, AccountLogin, AccountDetails,ImportShopYAML
 
 app_name = 'backend'
 urlpatterns = [
-    path('user/register', BuyerRegister.as_view(), name='buyer-register'),
-    path('user/login', BuyerLogin.as_view(), name='buyer-login'),
+    path('user/register', AccountRegister.as_view(), name='account-register'),
+    path('user/login', AccountLogin.as_view(), name='account-login'),
+    path('user/details', AccountDetails.as_view(), name='account-details'),
+    path('import', ImportShopYAML.as_view(), name='import-shop'),
 ]
