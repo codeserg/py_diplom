@@ -1,4 +1,5 @@
 import yaml
+import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -6,8 +7,8 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model, authenticate
 from django.db.models import Q
 
-from .serializers import UserSerializer, ProductSerializer, ProductInfoSerializer, ProductParameterSerializer 
-from .models import Shop, Parameter, Product, ProductInfo, Category, ProductParameter
+from .serializers import UserSerializer, ProductSerializer, ProductInfoSerializer, ProductParameterSerializer, OrderItemSerializer
+from .models import Shop, Parameter, Product, ProductInfo, Category, ProductParameter, Order, OrderItem
 
 User = get_user_model()
 
@@ -305,3 +306,42 @@ class ProductSearch(APIView):
         serializer = ProductInfoSerializer(queryset, many=True)
 
         return Response(serializer.data)
+
+class BasketView(APIView):
+    """
+    Класс для управления корзиной покупок пользователя.
+    """
+
+    def post(self, request, *args, **kwargs):
+        """
+        Добавить товары в корзину пользователя.
+        """
+        if not request.user.is_authenticated:
+            return Response({'Status': False, 'Error': 'Log in required'}, status=403)
+
+        items_string = request.data.get('items')
+        if items_string:
+            try:
+                items_dict = json.loads(items_string)
+            except ValueError:
+                return Response({'Status': False, 'Errors': 'Неверный формат запроса'})
+            else:
+                basket, _ = Order.objects.get_or_create(user_id=request.user.id, state='basket')
+                objects_created = 0
+                
+                for order_item in items_dict:
+                    order_item.update({'order': basket.id})
+                    serializer = OrderItemSerializer(data=order_item)
+                    
+                    if serializer.is_valid():
+                        try:
+                            serializer.save()
+                            objects_created += 1
+                        except Exception as error:
+                            return Response({'Status': False, 'Errors': str(error)})
+                    else:
+                        return Response({'Status': False, 'Errors': serializer.errors})
+
+                return Response({'Status': True, 'Создано объектов': objects_created})
+        
+        return Response({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
