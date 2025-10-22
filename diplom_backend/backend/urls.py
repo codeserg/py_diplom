@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import AccountRegister, AccountLogin, AccountDetails,ImportShopYAML
+from .views import AccountRegister, AccountLogin, AccountDetails,ImportShopYAML,ProductSearch
 
 app_name = 'backend'
 urlpatterns = [
@@ -8,4 +8,6 @@ urlpatterns = [
     path('user/login', AccountLogin.as_view(), name='account-login'),
     path('user/details', AccountDetails.as_view(), name='account-details'),
     path('import', ImportShopYAML.as_view(), name='import-shop'),
+    path('productsearch', ProductSearch.as_view(), name='product-search'),
+
 ]

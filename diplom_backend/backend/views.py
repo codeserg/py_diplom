@@ -6,8 +6,8 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model, authenticate
 from django.db.models import Q
 
-from .serializers import UserSerializer
-from .models import Shop,Parameter,Product,ProductInfo,Category,ProductParameter
+from .serializers import UserSerializer, ProductSerializer, ProductInfoSerializer, ProductParameterSerializer 
+from .models import Shop, Parameter, Product, ProductInfo, Category, ProductParameter
 
 User = get_user_model()
 

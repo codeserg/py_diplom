@@ -9,6 +9,7 @@ REGISTER_URL = f'{BASE_URL}/api/v1/user/register'
 LOGIN_URL = f'{BASE_URL}/api/v1/user/login'    
 DETAILS_URL = f'{BASE_URL}/api/v1/user/details'
 IMPORT_URL = f'{BASE_URL}/api/v1/import'
+PRODUCT_SEARCH_URL = f'{BASE_URL}/api/v1/productsearch'
 
 def test_registration():
     """Тест успешной регистрации"""
@@ -159,8 +160,63 @@ def import_test():
     print("Response:", response.json())
 
 
+def test_product_search():
+
+    login_data = {
+        'email': 'ivan.petrov@example.com',
+        'password': 'securepassword123'
+    }
+
+    login_response = requests.post(LOGIN_URL, json=login_data)
+    token = login_response.json().get('Token')
+    
+
+    headers = {'Authorization': f'Token {token}'}
+    
+    print("\n\nПоиск по названию товара:\n")
+    params = {'product_name': 'iPhone'}
+    response = requests.get(PRODUCT_SEARCH_URL, headers=headers, params=params)
+    print(f"\nСтатус: {response.status_code}")
+    print(f"\n{response.json()}\n")
+
+    print("\n\nПоиск по модели:\n")
+    params = {'model': 'Pro'}
+    response = requests.get(PRODUCT_SEARCH_URL, headers=headers, params=params)
+    print(f"\nСтатус: {response.status_code}")
+    print(f"\n{response.json()}\n")
+    
+    
+    print("\n\nПоиск по диапазону цен\n")
+    params = {'min_price': 50000, 'max_price': 100000}
+    response = requests.get(PRODUCT_SEARCH_URL, headers=headers, params=params)
+    print(f"\nСтатус: {response.status_code}")
+    print(f"\n{response.json()}\n")
+       
+  
+    print("\n\nКомбинированный поиск\n")
+    params = {
+        'product_name': 'Samsung',
+        'min_price': 20000,
+        'min_quantity': 5
+    }
+    response = requests.get(PRODUCT_SEARCH_URL, headers=headers, params=params)
+    print(f"\nСтатус: {response.status_code}")
+    print(f"\n{response.json()}\n")
+    
+    
+
+    print("\n\nПоиск по магазину и категории\n")
+    params = {
+        'shop_id': 1,
+        'category_id': 3
+    }
+    response = requests.get(PRODUCT_SEARCH_URL, headers=headers, params=params)
+    print(f"\nСтатус: {response.status_code}")
+    print(f"\n{response.json()}\n")
+    
+
 if __name__ == "__main__":
-    """
+    
     print("=== Тест успешной регистрации ===")
     test_registration()
     
@@ -177,7 +233,7 @@ if __name__ == "__main__":
     test_login_with_wrong_password()
 
     test_account_details()
-
-    """
-    
+   
     import_test()
+    
+    test_product_search()
