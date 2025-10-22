@@ -158,8 +158,6 @@ def import_test():
     print("Status:", response.status_code)
     print("Response:", response.json())
 
-# Запуск
-
 
 if __name__ == "__main__":
     """

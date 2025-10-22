@@ -1,10 +1,12 @@
+import yaml
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model, authenticate
+from django.db.models import Q
+
 from .serializers import UserSerializer
-import yaml
 from .models import Shop,Parameter,Product,ProductInfo,Category,ProductParameter
 
 User = get_user_model()
@@ -239,3 +241,67 @@ class ImportShopYAML(APIView):
                 {'Status': False, 'Error': f'Ошибка импорта: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        
+class ProductSearch(APIView):
+    """
+    Класс для поиска товаров по основным полям ProductInfo.
+    """
+
+    def get(self, request, *args, **kwargs):
+ 
+        # Базовый запрос - только активные магазины
+        query = Q(shop__state=True)
+        
+        # Параметры поиска
+        shop_id = request.query_params.get('shop_id')
+        category_id = request.query_params.get('category_id')
+        product_name = request.query_params.get('product_name')
+        model_name = request.query_params.get('model')
+        min_price = request.query_params.get('min_price')
+        max_price = request.query_params.get('max_price')
+        min_quantity = request.query_params.get('min_quantity')
+        external_id = request.query_params.get('external_id')
+
+        # Фильтр по магазину
+        if shop_id:
+            query = query & Q(shop_id=shop_id)
+
+        # Фильтр по категории
+        if category_id:
+            query = query & Q(product__category_id=category_id)
+
+        # Поиск по названию товара 
+        if product_name:
+            query = query & Q(product__name__icontains=product_name)
+
+        # Поиск по модели товара
+        if model_name:
+            query = query & Q(model__icontains=model_name)
+
+        # Фильтр по цене
+        if min_price:
+            query = query & Q(price__gte=min_price)
+        if max_price:
+            query = query & Q(price__lte=max_price)
+
+        # Фильтр по количеству
+        if min_quantity:
+            query = query & Q(quantity__gte=min_quantity)
+
+        # Фильтр по внешнему ID
+        if external_id:
+            query = query & Q(external_id=external_id)
+
+        queryset = ProductInfo.objects.filter(
+            query
+        ).select_related(
+            'shop', 
+            'product', 
+            'product__category'
+        ).prefetch_related(
+            'product_parameters__parameter'
+        ).distinct()
+
+        serializer = ProductInfoSerializer(queryset, many=True)
+
+        return Response(serializer.data)
