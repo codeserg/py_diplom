@@ -10,7 +10,7 @@ LOGIN_URL = f'{BASE_URL}/api/v1/user/login'
 DETAILS_URL = f'{BASE_URL}/api/v1/user/details'
 IMPORT_URL = f'{BASE_URL}/api/v1/import'
 PRODUCT_SEARCH_URL = f'{BASE_URL}/api/v1/productsearch'
-
+BASKET_URL = f'{BASE_URL}/api/v1/basket'
 def test_registration():
     """Тест успешной регистрации"""
     data = {
@@ -215,8 +215,65 @@ def test_product_search():
     print(f"\n{response.json()}\n")
     
 
-if __name__ == "__main__":
+def test_basket_post_without_auth():
+    """Тест добавления в корзину без авторизации"""
     
+    # Данные для добавления в корзину
+    items_data = [
+        {
+            "product_info": 123,
+            "quantity": 2
+        }
+    ]
+    
+    response = requests.post(BASKET_URL, json={'items': json.dumps(items_data)})
+    print(f"Статус: {response.status_code}")
+    print(f"Ответ: {response.json()}")
+    
+    if response.status_code == 403 or (response.json().get('Status') == False and 'Log in required' in str(response.json())):
+        print("Тест пройден: система требует авторизацию")
+        return True
+    else:
+        print("Тест не пройден: система разрешила доступ без авторизации")
+        return False
+    
+def test_basket_post_success():
+    """Тест успешного добавления в корзину"""
+    
+    login_data = {
+        'email': 'ivan.petrov@example.com',
+        'password': 'securepassword123'
+    }
+    
+    login_response = requests.post(LOGIN_URL, json=login_data)
+    token = login_response.json().get('Token')
+    headers = {'Authorization': f'Token {token}'}
+    
+    #сначала ищем id товара
+    params = {'product_name': 'iPhone'}
+    response = requests.get(PRODUCT_SEARCH_URL, headers=headers, params=params)
+    id = response.json()[0].get("id")
+    print (f"\nНайден товар id {id}")
+    items_data = [
+        {
+            "product_info": id,
+            "quantity": 3
+        }
+    ]
+    
+    response = requests.post(BASKET_URL, json={'items': json.dumps(items_data)}, headers=headers)
+    print(f"Статус: {response.status_code}")
+    print(f"Ответ: {response.json()}")
+    
+    if response.status_code == 200 and response.json().get('Status') == True and response.json().get('Создано объектов', 0) > 0:
+        print("Тест пройден: товар успешно добавлен в корзину")
+        return True
+    else:
+        print("Тест не пройден: не удалось добавить товар в корзину")
+        return False
+
+if __name__ == "__main__":
+    """
     print("=== Тест успешной регистрации ===")
     test_registration()
     
@@ -237,3 +294,7 @@ if __name__ == "__main__":
     import_test()
     
     test_product_search()
+    
+    test_basket_post_without_auth()
+    """
+    test_basket_post_success()
