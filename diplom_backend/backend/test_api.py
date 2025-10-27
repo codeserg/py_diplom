@@ -260,7 +260,11 @@ def test_basket_post_success():
             "quantity": 3
         }
     ]
-    
+    print("\n Очистка корзины. Тест метода delete\n")
+    response = requests.delete(BASKET_URL, headers=headers)
+    print(f"Статус: {response.status_code}")
+    print(f"Ответ: {response.json()}")
+
     response = requests.post(BASKET_URL, json={'items': json.dumps(items_data)}, headers=headers)
     print(f"Статус: {response.status_code}")
     print(f"Ответ: {response.json()}")

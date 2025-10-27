@@ -345,3 +345,19 @@ class BasketView(APIView):
                 return Response({'Status': True, 'Создано объектов': objects_created})
         
         return Response({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
+    
+    def delete(self, request, *args, **kwargs):
+        """
+        Очистить корзину.
+        """
+        if not request.user.is_authenticated:
+            return Response({'Status': False, 'Error': 'Log in required'}, status=403)
+
+        try:
+            basket = Order.objects.get(user_id=request.user.id, state='basket')
+            basket.delete()
+            return Response({'Status': True, 'Удалено': 'Корзина очищена'})
+        except Order.DoesNotExist:
+            return Response({'Status': False, 'Error': 'Корзина не найдена'})
+        except Exception as error:
+            return Response({'Status': False, 'Error': str(error)})
