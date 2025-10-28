@@ -423,6 +423,6 @@ class ContactView(APIView):
         try:
             contact = Contact.objects.get(id=contact_id, user_id=request.user.id)
             contact.delete()
-            return Response({'Status': True})
+            return Response({'Status': True}, status=status.HTTP_204_NO_CONTENT)
         except Contact.DoesNotExist:
             return Response({'Status': False, 'Error': 'Contact not found'})
