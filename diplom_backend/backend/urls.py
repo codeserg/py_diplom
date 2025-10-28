@@ -7,8 +7,23 @@ urlpatterns = [
     path('user/register', AccountRegister.as_view(), name='account-register'),
     path('user/login', AccountLogin.as_view(), name='account-login'),
     path('user/details', AccountDetails.as_view(), name='account-details'),
+
     path('import', ImportShopYAML.as_view(), name='import-shop'),
     path('productsearch', ProductSearch.as_view(), name='product-search'),
     path('basket', BasketView.as_view(), name='basket'),
 
 ]
+
+"""
+todo:
+
+order/confirm - подтверждение заказа
+
+orders - история заказов
+
+orders/{id} - статус заказа
+
+contacts - управление контактами
+
+"""
+

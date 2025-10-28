@@ -7,8 +7,8 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model, authenticate
 from django.db.models import Q
 
-from .serializers import UserSerializer, ProductSerializer, ProductInfoSerializer, ProductParameterSerializer, OrderItemSerializer, OrderSerializer
-from .models import Shop, Parameter, Product, ProductInfo, Category, ProductParameter, Order, OrderItem
+from .serializers import UserSerializer, ProductSerializer, ProductInfoSerializer, ProductParameterSerializer, OrderItemSerializer, OrderSerializer, ContactSerializer
+from .models import Shop, Parameter, Product, ProductInfo, Category, ProductParameter, Order, OrderItem, Contact
 
 User = get_user_model()
 
@@ -375,3 +375,56 @@ class BasketView(APIView):
             return Response({'Status': False, 'Error': 'Корзина не найдена'})
         except Exception as error:
             return Response({'Status': False, 'Error': str(error)})
+        
+class ContactView(APIView):
+    """
+    Класс для управления контактами пользователя
+    """
+    
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({'Status': False, 'Error': 'Log in required'}, status=403)
+        
+        contact = Contact.objects.filter(user_id=request.user.id)
+        serializer = ContactSerializer(contact, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return Response({'Status': False, 'Error': 'Log in required'}, status=403)
+
+        request.data._mutable = True
+        request.data['user'] = request.user.id
+        request.data._mutable = False
+        
+        serializer = ContactSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'Status': True})
+        return Response({'Status': False, 'Errors': serializer.errors})
+    
+    def put(self, request, contact_id):
+        if not request.user.is_authenticated:
+            return Response({'Status': False, 'Error': 'Log in required'}, status=403)
+
+        try:
+            contact = Contact.objects.get(id=contact_id, user_id=request.user.id)
+        except Contact.DoesNotExist:
+            return Response({'Status': False, 'Error': 'Contact not found'})
+        
+        serializer = ContactSerializer(contact, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'Status': True})
+        return Response({'Status': False, 'Errors': serializer.errors})
+    
+    def delete(self, request, contact_id):
+        if not request.user.is_authenticated:
+            return Response({'Status': False, 'Error': 'Log in required'}, status=403)
+
+        try:
+            contact = Contact.objects.get(id=contact_id, user_id=request.user.id)
+            contact.delete()
+            return Response({'Status': True})
+        except Contact.DoesNotExist:
+            return Response({'Status': False, 'Error': 'Contact not found'})
