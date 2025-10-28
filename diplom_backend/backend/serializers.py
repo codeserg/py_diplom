@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Contact, Product, ProductInfo, ProductParameter, OrderItem
+from .models import Contact, Product, ProductInfo, ProductParameter, OrderItem, Order
 
 User = get_user_model()
 
@@ -54,3 +54,17 @@ class OrderItemSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'order': {'write_only': True}
         }
+
+class OrderItemCreateSerializer(OrderItemSerializer):
+    product_info = ProductInfoSerializer(read_only=True)
+
+class OrderSerializer(serializers.ModelSerializer):
+    ordered_items = OrderItemCreateSerializer(read_only=True, many=True)
+
+    total_sum = serializers.IntegerField()
+    contact = ContactSerializer(read_only=True)
+
+    class Meta:
+        model = Order
+        fields = ('id', 'ordered_items', 'state', 'dt', 'total_sum', 'contact',)
+        read_only_fields = ('id',)

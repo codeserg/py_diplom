@@ -7,7 +7,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model, authenticate
 from django.db.models import Q
 
-from .serializers import UserSerializer, ProductSerializer, ProductInfoSerializer, ProductParameterSerializer, OrderItemSerializer
+from .serializers import UserSerializer, ProductSerializer, ProductInfoSerializer, ProductParameterSerializer, OrderItemSerializer, OrderSerializer
 from .models import Shop, Parameter, Product, ProductInfo, Category, ProductParameter, Order, OrderItem
 
 User = get_user_model()
@@ -55,8 +55,6 @@ class AccountRegister(APIView):
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
-
-
 class AccountLogin(APIView):
     """
     Класс для авторизации пользователей
@@ -357,6 +355,22 @@ class BasketView(APIView):
             basket = Order.objects.get(user_id=request.user.id, state='basket')
             basket.delete()
             return Response({'Status': True, 'Удалено': 'Корзина очищена'})
+        except Order.DoesNotExist:
+            return Response({'Status': False, 'Error': 'Корзина не найдена'})
+        except Exception as error:
+            return Response({'Status': False, 'Error': str(error)})
+    
+    def get(self, request, *args, **kwargs):
+        """
+        Получить текущую корзину пользователя.
+        """
+        if not request.user.is_authenticated:
+            return Response({'Status': False, 'Error': 'Log in required'}, status=403)
+
+        try:
+            basket = Order.objects.get(user_id=request.user.id, state='basket')
+            serializer = OrderSerializer(basket)
+            return Response(serializer.data)
         except Order.DoesNotExist:
             return Response({'Status': False, 'Error': 'Корзина не найдена'})
         except Exception as error:
