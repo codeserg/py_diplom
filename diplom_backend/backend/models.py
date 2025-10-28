@@ -239,6 +239,10 @@ class Order(models.Model):
 
     def __str__(self):
         return str(self.dt)
+    
+    @property
+    def total_sum(self):
+        return sum(item.quantity * item.product_info.price for item in self.ordered_items.all())
 
 
 class OrderItem(models.Model):

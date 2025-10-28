@@ -237,8 +237,8 @@ def test_basket_post_without_auth():
         print("Тест не пройден: система разрешила доступ без авторизации")
         return False
     
-def test_basket_post_success():
-    """Тест успешного добавления в корзину"""
+def test_basket_post():
+    """Тест добавления в корзину"""
     
     login_data = {
         'email': 'ivan.petrov@example.com',
@@ -276,6 +276,29 @@ def test_basket_post_success():
         print("Тест не пройден: не удалось добавить товар в корзину")
         return False
 
+def test_basket_get():
+    """Тест получения корзины"""
+    
+    login_data = {
+        'email': 'ivan.petrov@example.com',
+        'password': 'securepassword123'
+    }
+    
+    login_response = requests.post(LOGIN_URL, json=login_data)
+    token = login_response.json().get('Token')
+    headers = {'Authorization': f'Token {token}'}
+
+    response = requests.get(BASKET_URL, headers=headers)
+    print(f"Статус: {response.status_code}")
+    print(f"Ответ: {response.json()}")
+    
+    if response.status_code == 200 and 'id' in response.json():
+        print("Тест пройден: корзина успешно получена")
+        return True
+    else:
+        print("Тест не пройден: не удалось получить корзину")
+        return False
+
 if __name__ == "__main__":
     """
     print("=== Тест успешной регистрации ===")
@@ -301,4 +324,6 @@ if __name__ == "__main__":
     
     test_basket_post_without_auth()
     """
-    test_basket_post_success()
+    test_basket_post()
+
+    test_basket_get()
