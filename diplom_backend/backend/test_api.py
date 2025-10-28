@@ -5,12 +5,14 @@ import json
 
 # Настройки
 BASE_URL = 'http://localhost:8000'
-REGISTER_URL = f'{BASE_URL}/api/v1/user/register'
-LOGIN_URL = f'{BASE_URL}/api/v1/user/login'    
-DETAILS_URL = f'{BASE_URL}/api/v1/user/details'
-IMPORT_URL = f'{BASE_URL}/api/v1/import'
-PRODUCT_SEARCH_URL = f'{BASE_URL}/api/v1/productsearch'
-BASKET_URL = f'{BASE_URL}/api/v1/basket'
+REGISTER_URL = f'{BASE_URL}/api/v1/user/register/'
+LOGIN_URL = f'{BASE_URL}/api/v1/user/login/'    
+DETAILS_URL = f'{BASE_URL}/api/v1/user/details/'
+IMPORT_URL = f'{BASE_URL}/api/v1/import/'
+PRODUCT_SEARCH_URL = f'{BASE_URL}/api/v1/productsearch/'
+BASKET_URL = f'{BASE_URL}/api/v1/basket/'
+CONTACT_URL =f'{BASE_URL}/api/v1/contact/'
+
 def test_registration():
     """Тест успешной регистрации"""
     data = {
@@ -298,10 +300,49 @@ def test_basket_get():
     else:
         print("Тест не пройден: не удалось получить корзину")
         return False
+    
+def test_contact_crud():
+    print("\nТестирование методов работы с контактом")
+    login_data = {
+        'email': 'ivan.petrov@example.com',
+        'password': 'securepassword123'
+    }
+    
+    login_response = requests.post(LOGIN_URL, json=login_data)
+    token = login_response.json().get('Token')
+    headers = {'Authorization': f'Token {token}'}
 
+    # POST
+    contact_data = {
+        'city': 'Москва',
+        'street': 'Ленина',
+        'house': '10',
+        'phone': '+79991234567'
+    }
+    response = requests.post(CONTACT_URL, json=contact_data, headers=headers)
+    print(f"POST Статус: {response.status_code}")
+    print(f"POST Ответ: {response.json()}\n")
+    contact_id = response.json().get('id')
+
+    # GET всех контактов
+    response = requests.get(CONTACT_URL, headers=headers)
+    print(f"GET Статус: {response.status_code}")
+    print(f"GET Ответ: {response.json()}\n")
+
+    # PUT
+    update_data = {'city': 'Санкт-Петербург'}
+    response = requests.put(f"{CONTACT_URL}{contact_id}/", json=update_data, headers=headers)
+    print(f"PUT Статус: {response.status_code}")
+    print(f"PUT Ответ: {response.json()}\n")
+
+    # DELETE
+    response = requests.delete(f"{CONTACT_URL}{contact_id}/", headers=headers)
+    print(f"DELETE Статус: {response.status_code}")
+    print(f"DELETE Ответ: {response.json()}\n")
+  
 if __name__ == "__main__":
-    """
-    print("=== Тест успешной регистрации ===")
+    
+    print("=== Тест регистрации ===")
     test_registration()
     
     print("\n=== Тест с отсутствующими полями ===")
@@ -323,7 +364,10 @@ if __name__ == "__main__":
     test_product_search()
     
     test_basket_post_without_auth()
-    """
+    
     test_basket_post()
 
     test_basket_get()
+    """
+    test_contact_crud()
+    """

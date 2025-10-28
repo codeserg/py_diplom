@@ -392,11 +392,9 @@ class ContactView(APIView):
     def post(self, request):
         if not request.user.is_authenticated:
             return Response({'Status': False, 'Error': 'Log in required'}, status=403)
-
-        request.data._mutable = True
-        request.data['user'] = request.user.id
-        request.data._mutable = False
         
+        request.data['user'] = request.user.id
+               
         serializer = ContactSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
