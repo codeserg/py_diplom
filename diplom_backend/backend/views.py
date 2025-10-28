@@ -394,11 +394,11 @@ class ContactView(APIView):
             return Response({'Status': False, 'Error': 'Log in required'}, status=403)
         
         request.data['user'] = request.user.id
-               
+            
         serializer = ContactSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response({'Status': True})
+            contact = serializer.save()
+            return Response({'Status': True, 'id': contact.id})
         return Response({'Status': False, 'Errors': serializer.errors})
     
     def put(self, request, contact_id):
