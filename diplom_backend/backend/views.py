@@ -423,6 +423,97 @@ class ContactView(APIView):
         try:
             contact = Contact.objects.get(id=contact_id, user_id=request.user.id)
             contact.delete()
-            return Response({'Status': True}, status=status.HTTP_204_NO_CONTENT)
+            return Response(status=status.HTTP_204_NO_CONTENT)
         except Contact.DoesNotExist:
             return Response({'Status': False, 'Error': 'Contact not found'})
+
+class OrderView(APIView):
+    """
+    Класс для получения и размещения заказов пользователями
+    """
+
+    def get(self, request, order_id=None):
+        """
+        Получение заказов пользователя
+        """
+        if not request.user.is_authenticated:
+            return Response({'Status': False, 'Error': 'Log in required'}, status=403)
+        
+        if order_id:
+            try:
+                order = Order.objects.get(id=order_id, user_id=request.user.id)
+                serializer = OrderSerializer(order)
+                return Response(serializer.data)
+            except Order.DoesNotExist:
+                return Response({'Status': False, 'Error': 'Заказ не найден'})
+        else:
+            orders = Order.objects.filter(user_id=request.user.id).exclude(state='basket')
+            serializer = OrderSerializer(orders, many=True)
+            return Response(serializer.data)
+
+    def post(self, request):
+        """
+        Создание нового заказа из корзины
+        Аргументы:
+        - contact_id: ID контакта для доставки
+        """
+        if not request.user.is_authenticated:
+            return Response({'Status': False, 'Error': 'Log in required'}, status=403)
+        
+        contact_id = request.data.get('contact_id')
+        if not contact_id:
+            return Response({'Status': False, 'Error': 'Не указан контакт'})
+        
+        try:
+            basket = Order.objects.get(user_id=request.user.id, state='basket')
+            contact = Contact.objects.get(id=contact_id, user_id=request.user.id)
+        except Order.DoesNotExist:
+            return Response({'Status': False, 'Error': 'Корзина не найдена'})
+        except Contact.DoesNotExist:
+            return Response({'Status': False, 'Error': 'Контакт не найден'})
+        
+        if not basket.ordered_items.exists():
+            return Response({'Status': False, 'Error': 'Корзина пуста'})
+        
+        basket.contact = contact
+        basket.state = 'new'
+        basket.save()
+        
+        return Response({'Status': True, 'order_id': basket.id})
+
+    def put(self, request, order_id):
+        """
+        Обновление заказа (например, смена контакта)
+        """
+        if not request.user.is_authenticated:
+            return Response({'Status': False, 'Error': 'Log in required'}, status=403)
+        
+        try:
+            order = Order.objects.get(id=order_id, user_id=request.user.id)
+            contact_id = request.data.get('contact_id')
+            
+            if contact_id:
+                contact = Contact.objects.get(id=contact_id, user_id=request.user.id)
+                order.contact = contact
+            
+            order.save()
+            return Response({'Status': True})
+            
+        except Order.DoesNotExist:
+            return Response({'Status': False, 'Error': 'Заказ не найден'})
+        except Contact.DoesNotExist:
+            return Response({'Status': False, 'Error': 'Контакт не найден'})
+
+    def delete(self, request, order_id):
+        """
+        Удаление заказа
+        """
+        if not request.user.is_authenticated:
+            return Response({'Status': False, 'Error': 'Log in required'}, status=403)
+        
+        try:
+            order = Order.objects.get(id=order_id, user_id=request.user.id)
+            order.delete()
+            return Response({'Status': True}, status=status.HTTP_204_NO_CONTENT)
+        except Order.DoesNotExist:
+            return Response({'Status': False, 'Error': 'Заказ не найден'})

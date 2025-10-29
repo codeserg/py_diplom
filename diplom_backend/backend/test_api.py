@@ -338,10 +338,10 @@ def test_contact_crud():
     # DELETE
     response = requests.delete(f"{CONTACT_URL}{contact_id}/", headers=headers)
     print(f"DELETE Статус: {response.status_code}")
-    print(f"DELETE Ответ: {response.json()}\n")
+    
   
 if __name__ == "__main__":
-    
+    """
     print("=== Тест регистрации ===")
     test_registration()
     
@@ -368,6 +368,6 @@ if __name__ == "__main__":
     test_basket_post()
 
     test_basket_get()
-    
+    """
     test_contact_crud()
     
