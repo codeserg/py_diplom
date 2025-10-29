@@ -6,6 +6,8 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model, authenticate
 from django.db.models import Q
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 
 from .serializers import UserSerializer, ProductSerializer, ProductInfoSerializer, ProductParameterSerializer, OrderItemSerializer, OrderSerializer, ContactSerializer
 from .models import Shop, Parameter, Product, ProductInfo, Category, ProductParameter, Order, OrderItem, Contact
@@ -482,27 +484,35 @@ class OrderView(APIView):
         return Response({'Status': True, 'order_id': basket.id})
 
     def put(self, request, order_id):
-        """
-        Обновление заказа (например, смена контакта)
-        """
-        if not request.user.is_authenticated:
-            return Response({'Status': False, 'Error': 'Log in required'}, status=403)
-        
-        try:
-            order = Order.objects.get(id=order_id, user_id=request.user.id)
-            contact_id = request.data.get('contact_id')
+            if not request.user.is_authenticated:
+                return Response({'Status': False, 'Error': 'Log in required'}, status=403)
             
-            if contact_id:
-                contact = Contact.objects.get(id=contact_id, user_id=request.user.id)
-                order.contact = contact
-            
-            order.save()
-            return Response({'Status': True})
-            
-        except Order.DoesNotExist:
-            return Response({'Status': False, 'Error': 'Заказ не найден'})
-        except Contact.DoesNotExist:
-            return Response({'Status': False, 'Error': 'Контакт не найден'})
+            try:
+                order = Order.objects.get(id=order_id, user_id=request.user.id)
+                
+                # Обновляем контакт если передан
+                contact_id = request.data.get('contact_id')
+                if contact_id:
+                    contact = Contact.objects.get(id=contact_id, user_id=request.user.id)
+                    order.contact = contact
+                
+                # Отправляем накладную при изменении статуса на "собран" или "отправлен"
+                new_state = request.data.get('state')
+                if new_state in ['assembled', 'sent'] and order.state != new_state:
+                    order.state = new_state
+                    order.save()
+                    
+                    # Автоматическая отправка накладной
+                    self.send_invoice_email(order)
+                else:
+                    order.save()
+                    
+                return Response({'Status': True})
+                
+            except Order.DoesNotExist:
+                return Response({'Status': False, 'Error': 'Заказ не найден'})
+            except Contact.DoesNotExist:
+                return Response({'Status': False, 'Error': 'Контакт не найден'})
 
     def delete(self, request, order_id):
         """
@@ -517,3 +527,46 @@ class OrderView(APIView):
             return Response({'Status': True}, status=status.HTTP_204_NO_CONTENT)
         except Order.DoesNotExist:
             return Response({'Status': False, 'Error': 'Заказ не найден'})
+    
+    def send_invoice_email(self, order):
+        """
+        Отправка накладной по email
+        """
+        try:
+            # Email администратора (можно вынести в settings)
+            admin_email ="mazanov_sergey@mail.ru"
+            
+            # Тема письма
+            subject = f'Накладная для заказа #{order.id} от {order.dt.strftime("%d.%m.%Y")}'
+            
+            # Данные для шаблона
+            context = {
+                'order': order,
+                'order_items': order.ordered_items.all().select_related(
+                    'product_info', 
+                    'product_info__product',
+                    'product_info__shop'
+                ),
+                'total_sum': order.total_sum,
+                'contact': order.contact,
+            }
+            
+            
+            message = render_to_string('emails/order_invoice.txt', context)
+            html_message = render_to_string('emails/order_invoice.html', context)
+            
+            
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[admin_email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+            
+            return True
+            
+        except Exception as e:
+            print(f"Ошибка отправки email: {str(e)}")
+            return False
