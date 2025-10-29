@@ -436,6 +436,101 @@ def test_order_put():
         print("Нет заказов для тестирования")
         return False
 
+def test_order_get_detail():
+    print("\n","-"*32,"Тест получения конкретного заказа","-"*32)
+    
+    login_data = {
+        'email': 'ivan.petrov@example.com',
+        'password': 'securepassword123'
+    }
+    
+    login_response = requests.post(LOGIN_URL, json=login_data)
+    token = login_response.json().get('Token')
+    headers = {'Authorization': f'Token {token}'}
+
+    # Получаем все заказы и находим максимальный ID
+    response = requests.get(ORDER_URL, headers=headers)
+    orders = response.json()
+    
+    if orders:
+        max_order = max(orders, key=lambda x: x['id'])
+        order_id = max_order['id']
+        print(f"Максимальный ID заказа: {order_id}")
+
+        # Получаем конкретный заказ
+        response = requests.get(f"{ORDER_URL}{order_id}/", headers=headers)
+        print(f"GET Order Detail Status: {response.status_code}")
+        print(f"GET Order Detail Response: {response.json()}")
+
+        if response.status_code == 200 and response.json().get('id') == order_id:
+            print("Тест пройден: заказ успешно получен")
+            return True
+        else:
+            print("Тест не пройден: не удалось получить заказ")
+            return False
+    else:
+        print("Нет заказов для тестирования")
+        return False
+
+def test_order_get_list():
+    print("\n","-"*32,"Тест получения списка всех заказов","-"*32)
+    
+    login_data = {
+        'email': 'ivan.petrov@example.com',
+        'password': 'securepassword123'
+    }
+    
+    login_response = requests.post(LOGIN_URL, json=login_data)
+    token = login_response.json().get('Token')
+    headers = {'Authorization': f'Token {token}'}
+
+    # Получаем список всех заказов
+    response = requests.get(ORDER_URL, headers=headers)
+    print(f"GET Order List Status: {response.status_code}")
+    print(f"Количество заказов: {len(response.json())}")
+    
+    if response.status_code == 200 and isinstance(response.json(), list):
+        print("Тест пройден: список заказов успешно получен")
+        return True
+    else:
+        print("Тест не пройден: не удалось получить список заказов")
+        return False
+    
+def test_order_delete():
+    print("\n","-"*32,"Тест удаления заказа","-"*32)
+    
+    login_data = {
+        'email': 'ivan.petrov@example.com',
+        'password': 'securepassword123'
+    }
+    
+    login_response = requests.post(LOGIN_URL, json=login_data)
+    token = login_response.json().get('Token')
+    headers = {'Authorization': f'Token {token}'}
+
+    # Получаем все заказы и находим максимальный ID
+    response = requests.get(ORDER_URL, headers=headers)
+    orders = response.json()
+    
+    if orders:
+        max_order = max(orders, key=lambda x: x['id'])
+        order_id = max_order['id']
+        print(f"Удаляемый заказ ID: {order_id}")
+
+        # Удаляем заказ
+        response = requests.delete(f"{ORDER_URL}{order_id}/", headers=headers)
+        print(f"DELETE Order Status: {response.status_code}")
+        
+        if response.status_code == 204:
+            print("Тест пройден: заказ успешно удален")
+            return True
+        else:
+            print("Тест не пройден: не удалось удалить заказ")
+            return False
+    else:
+        print("Нет заказов для удаления")
+        return False
+
 if __name__ == "__main__":
     """
     print("=== Тест регистрации ===")
@@ -468,5 +563,11 @@ if __name__ == "__main__":
     test_contact_crud()
     
     test_order_post()
-    """
+    
     test_order_put()
+    
+    test_order_get_detail()
+    
+    test_order_get_list()
+    """
+    test_order_delete()
