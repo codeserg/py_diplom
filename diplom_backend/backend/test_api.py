@@ -156,6 +156,13 @@ def import_test():
     token = login.json()['Token']
     
     base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, '..', 'sample_shop.yaml')
+    with open(file_path, 'rb') as file:  
+        response = requests.post(IMPORT_URL ,
+            files={'file': file},
+            headers={'Authorization': f'Token {token}'}
+        )
+
     file_path = os.path.join(base_dir, '..', 'test_shop.yaml')
     with open(file_path, 'rb') as file:  
         response = requests.post(IMPORT_URL ,
@@ -539,7 +546,7 @@ def test_order_delete():
         return False
 
 if __name__ == "__main__":
-    """
+    
     test_registration()
     
     test_registration_missing_fields()
@@ -563,9 +570,9 @@ if __name__ == "__main__":
     test_basket_get()
     
     test_contact_crud()
-    """
+    
     test_order_post()
-    """
+    
     test_order_put()
     
     test_order_get_detail()
@@ -573,4 +580,4 @@ if __name__ == "__main__":
     test_order_get_list()
     
     test_order_delete()
-    """
+    
