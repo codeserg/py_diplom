@@ -12,6 +12,7 @@ IMPORT_URL = f'{BASE_URL}/api/v1/import/'
 PRODUCT_SEARCH_URL = f'{BASE_URL}/api/v1/productsearch/'
 BASKET_URL = f'{BASE_URL}/api/v1/basket/'
 CONTACT_URL =f'{BASE_URL}/api/v1/contact/'
+ORDER_URL =f'{BASE_URL}/api/v1/order/'
 
 def test_registration():
     """Тест успешной регистрации"""
@@ -279,7 +280,7 @@ def test_basket_post():
         return False
 
 def test_basket_get():
-    """Тест получения корзины"""
+    print("\n","-"*32,"Тест получения корзины","-"*32)
     
     login_data = {
         'email': 'ivan.petrov@example.com',
@@ -302,7 +303,8 @@ def test_basket_get():
         return False
     
 def test_contact_crud():
-    print("\nТестирование методов работы с контактом")
+    print("\n","-"*32,"Тестирование методов работы с контактом","-"*32)
+    
     login_data = {
         'email': 'ivan.petrov@example.com',
         'password': 'securepassword123'
@@ -338,8 +340,102 @@ def test_contact_crud():
     # DELETE
     response = requests.delete(f"{CONTACT_URL}{contact_id}/", headers=headers)
     print(f"DELETE Статус: {response.status_code}")
+
+def test_order_post():
+    print("\n","-"*32,"Тест создания заказа из корзины","-"*32)
+        
+    login_data = {
+        'email': 'ivan.petrov@example.com',
+        'password': 'securepassword123'
+    }
     
-  
+    login_response = requests.post(LOGIN_URL, json=login_data)
+    token = login_response.json().get('Token')
+    headers = {'Authorization': f'Token {token}'}
+
+    # ОЧИСТКА КОРЗИНЫ перед тестом
+    response = requests.delete(BASKET_URL, headers=headers)
+    
+    # Создаем контакт
+    contact_data = {
+        'city': 'Москва',
+        'street': 'Ленина',
+        'house': '10',
+        'phone': '+79991234567'
+    }
+    response = requests.post(CONTACT_URL, json=contact_data, headers=headers)
+    contact_id = response.json().get('id')
+    print(f"Создан контакт id {contact_id}")
+
+    # Добавляем товар в корзину
+    params = {'product_name': 'iPhone'}
+    response = requests.get(PRODUCT_SEARCH_URL, headers=headers, params=params)
+    product_id = response.json()[0].get("id")
+    print(f"Найден товар id {product_id}")
+    
+    items_data = [{"product_info": product_id, "quantity": 1}]
+    response = requests.post(BASKET_URL, json={'items': json.dumps(items_data)}, headers=headers)
+    print(f"Добавлено в корзину: {response.json()}")
+
+    # Создаем заказ
+    order_data = {'contact_id': contact_id}
+    response = requests.post(ORDER_URL, json=order_data, headers=headers)
+    print(f"POST Order Status: {response.status_code}")
+    print(f"POST Order Response: {response.json()}")
+
+    if response.status_code == 200 and response.json().get('Status') == True:
+        print("Тест пройден: заказ успешно создан")
+        return True
+    else:
+        print("Тест не пройден: не удалось создать заказ")
+        return False
+    
+def test_order_put():
+    print("\n","-"*32,"Тест обновления заказа","-"*32)
+        
+    login_data = {
+        'email': 'ivan.petrov@example.com',
+        'password': 'securepassword123'
+    }
+    
+    login_response = requests.post(LOGIN_URL, json=login_data)
+    token = login_response.json().get('Token')
+    headers = {'Authorization': f'Token {token}'}
+
+    # Создаем второй контакт для обновления
+    contact_data = {
+        'city': 'Санкт-Петербург',
+        'street': 'Невский',
+        'house': '25',
+        'phone': '+79997654321'
+    }
+    response = requests.post(CONTACT_URL, json=contact_data, headers=headers)
+    new_contact_id = response.json().get('id')
+    print(f"Создан новый контакт id {new_contact_id}")
+
+    # Получаем ID существующего заказа
+    response = requests.get(ORDER_URL, headers=headers)
+    orders = response.json()
+    if orders:
+        order_id = orders[0].get('id')
+        print(f"Найден заказ id {order_id}")
+
+        # Обновляем заказ
+        update_data = {'contact_id': new_contact_id}
+        response = requests.put(f"{ORDER_URL}{order_id}/", json=update_data, headers=headers)
+        print(f"PUT Order Status: {response.status_code}")
+        print(f"PUT Order Response: {response.json()}")
+
+        if response.status_code == 200 and response.json().get('Status') == True:
+            print("Тест пройден: заказ успешно обновлен")
+            return True
+        else:
+            print("Тест не пройден: не удалось обновить заказ")
+            return False
+    else:
+        print("Нет заказов для тестирования")
+        return False
+
 if __name__ == "__main__":
     """
     print("=== Тест регистрации ===")
@@ -368,6 +464,9 @@ if __name__ == "__main__":
     test_basket_post()
 
     test_basket_get()
-    """
+    
     test_contact_crud()
     
+    test_order_post()
+    """
+    test_order_put()

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import AccountRegister, AccountLogin, AccountDetails,ImportShopYAML,ProductSearch,BasketView,ContactView
+from .views import AccountRegister, AccountLogin, AccountDetails,ImportShopYAML,ProductSearch,BasketView,ContactView,OrderView
 
 app_name = 'backend'
 urlpatterns = [
@@ -14,17 +14,9 @@ urlpatterns = [
 
     path('contact/', ContactView.as_view()),  # GET, POST
     path('contact/<int:contact_id>/', ContactView.as_view()),  # PUT, DELETE
+    
+    path('order/', OrderView.as_view()),  # GET (все заказы), POST (создание)
+    path('order/<int:order_id>/', OrderView.as_view()),  # GET (конкретный), PUT, DELETE
 
 ]
-
-"""
-todo:
-
-order/confirm - подтверждение заказа
-
-orders - история заказов
-
-orders/{id} - статус заказа
-
-"""
 
