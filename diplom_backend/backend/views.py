@@ -482,39 +482,47 @@ class OrderView(APIView):
         basket.state = 'new'
         basket.save()
         
+        # Отправка подтверждения заказа клиенту
+        self.send_confirmation_email(basket)
+        
         return Response({'Status': True, 'order_id': basket.id})
 
     def put(self, request, order_id):
-            if not request.user.is_authenticated:
-                return Response({'Status': False, 'Error': 'Log in required'}, status=403)
+        if not request.user.is_authenticated:
+            return Response({'Status': False, 'Error': 'Log in required'}, status=403)
+        
+        try:
+            order = Order.objects.get(id=order_id, user_id=request.user.id)
             
-            try:
-                order = Order.objects.get(id=order_id, user_id=request.user.id)
+            # Обновляем контакт если передан
+            contact_id = request.data.get('contact_id')
+            if contact_id:
+                contact = Contact.objects.get(id=contact_id, user_id=request.user.id)
+                order.contact = contact
+            
+            # Отправляем накладную при изменении статуса на "собран" или "отправлен"
+            new_state = request.data.get('state')
+            print(new_state, order.state)
+            if new_state in ['assembled', 'sent']:
+                order.state = new_state
+                order.save()
                 
-                # Обновляем контакт если передан
-                contact_id = request.data.get('contact_id')
-                if contact_id:
-                    contact = Contact.objects.get(id=contact_id, user_id=request.user.id)
-                    order.contact = contact
+                # Автоматическая отправка накладной
+                self.send_invoice_email(order)
+            elif new_state == 'confirmed':
+                # Отправка подтверждения при подтверждении заказа
+                order.state = new_state
+                order.save()
+                self.send_confirmation_email(order)
+            else:
+                order.save()
                 
-                # Отправляем накладную при изменении статуса на "собран" или "отправлен"
-                new_state = request.data.get('state')
-                print(new_state, order.state)
-                if new_state in ['assembled', 'sent']: # and order.state != new_state:
-                    order.state = new_state
-                    order.save()
-                    
-                    # Автоматическая отправка накладной
-                    self.send_invoice_email(order)
-                else:
-                    order.save()
-                    
-                return Response({'Status': True,'State':order.state})
-                
-            except Order.DoesNotExist:
-                return Response({'Status': False, 'Error': 'Заказ не найден'})
-            except Contact.DoesNotExist:
-                return Response({'Status': False, 'Error': 'Контакт не найден'})
+            return Response({'Status': True,'State':order.state})
+            
+        except Order.DoesNotExist:
+            return Response({'Status': False, 'Error': 'Заказ не найден'})
+        except Contact.DoesNotExist:
+            return Response({'Status': False, 'Error': 'Контакт не найден'})
 
     def delete(self, request, order_id):
         """
@@ -531,7 +539,7 @@ class OrderView(APIView):
             return Response({'Status': False, 'Error': 'Заказ не найден'})
     
     def send_invoice_email(self, order):
-        print(f"Send email order id={order}")
+        print(f"Send email for order id={order.id}")
         
         try:
             # Email администратора (можно вынести в settings)
@@ -569,4 +577,51 @@ class OrderView(APIView):
             
         except Exception as e:
             print(f"Ошибка отправки email: {str(e)}")
+            return False
+        
+    def send_confirmation_email(self, order):
+        """
+        Отправка подтверждения заказа на email клиента
+        """
+        print(f"Send confirmation email for order id={order.id}")
+        
+        try:
+            # Email клиента
+            client_email = order.user.email
+            
+            # Тема письма
+            subject = f'Подтверждение заказа #{order.id} от {order.dt.strftime("%d.%m.%Y")}'
+            
+            # Данные для шаблона
+            context = {
+                'order': order,
+                'order_items': order.ordered_items.all().select_related(
+                    'product_info', 
+                    'product_info__product',
+                    'product_info__shop'
+                ),
+                'total_sum': order.total_sum,
+                'contact': order.contact,
+                'user': order.user,
+            }
+            
+            # Рендерим текстовую и HTML версии письма
+            message = render_to_string('emails/order_confirmation.txt', context)
+            html_message = render_to_string('emails/order_confirmation.html', context)
+            
+            # Отправляем письмо
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[client_email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+            
+            print(f"Confirmation email sent to {client_email}")
+            return True
+            
+        except Exception as e:
+            print(f"Ошибка отправки email подтверждения: {str(e)}")
             return False

@@ -1,0 +1,18 @@
+Уважаемый(ая) {{ user.first_name }} {{ user.last_name }},
+
+Ваш заказ #{{ order.id }} от {{ order.dt|date:"d.m.Y H:i" }} успешно принят!
+
+Детали заказа:
+{% for item in order_items %}
+- {{ item.product_info.product.name }} ({{ item.product_info.model }})
+  Количество: {{ item.quantity }} × {{ item.product_info.price }} руб. = {{ item.item_sum }} руб.
+{% endfor %}
+
+Общая сумма заказа: {{ total_sum }} руб.
+
+Адрес доставки:
+{{ contact.city }}, {{ contact.street }}, д. {{ contact.house }}
+{% if contact.apartment %}кв. {{ contact.apartment }}{% endif %}
+Телефон: {{ contact.phone }}
+
+Спасибо за ваш заказ!

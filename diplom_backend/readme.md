@@ -36,12 +36,13 @@ GET /api/v1/order/1/ - получение заказа с ID=1
 PUT /api/v1/order/1/ - обновление заказа с ID=1
 DELETE /api/v1/order/1/ - удаление заказа с ID=1
 
-Реализована автоматическая отправка Email администратору при смене статуса заказа на "Собран" или "Отправлен".
-Используется EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend', поэтому отправка идет в консоль.
+Реализована  отправка Email администратору при смене статуса заказа на "Собран" или "Отправлен" - в методе PUT обновления заказа
 
+Используется EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend', поэтому отправка идет в консоль.
 Для реальной отправки необходимо в settings.py удалить строку EMAIL_BACKEND и добавить  настройки:
 EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'your_email@yandex.ru'
 EMAIL_HOST_PASSWORD = 'your_app_password'
+

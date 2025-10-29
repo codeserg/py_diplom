@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Подтверждение заказа</title>
+</head>
+<body>
+    <h2>Уважаемый(ая) {{ user.first_name }} {{ user.last_name }},</h2>
+    
+    <p>Ваш заказ <strong>#{{ order.id }}</strong> от <strong>{{ order.dt|date:"d.m.Y H:i" }}</strong> успешно принят!</p>
+    
+    <h3>Детали заказа:</h3>
+    <table border="1" cellpadding="8" style="border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Количество</th>
+                <th>Цена</th>
+                <th>Сумма</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order_items %}
+            <tr>
+                <td>{{ item.product_info.product.name }} ({{ item.product_info.model }})</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.product_info.price }} руб.</td>
+                <td>{{ item.item_sum }} руб.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <p><strong>Общая сумма заказа: {{ total_sum }} руб.</strong></p>
+    
+    <h3>Адрес доставки:</h3>
+    <p>
+        {{ contact.city }}, {{ contact.street }}, д. {{ contact.house }}<br>
+        {% if contact.apartment %}кв. {{ contact.apartment }}<br>{% endif %}
+        Телефон: {{ contact.phone }}
+    </p>
+    
+
+</body>
+</html>
