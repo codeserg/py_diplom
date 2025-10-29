@@ -1,18 +1,18 @@
-Накладная для заказа #{order.id}
+Накладная для заказа #{{ order.id }}
 
-Дата заказа: {order.dt.strftime('%d.%m.%Y %H:%M')}
-Статус: {order.get_state_display()}
+Дата заказа: {{ order.dt|date:"d.m.Y H:i" }}
+Статус: {{ order.get_state_display }}
 
 Информация о покупателе:
-{order.user.first_name} {order.user.last_name}
-Email: {order.user.email}
-Компания: {order.user.company}
+{{ order.user.first_name }} {{ order.user.last_name }}
+Email: {{ order.user.email }}
+Компания: {{ order.user.company }}
 
 Контактная информация:
-Город: {order.contact.city}
-Улица: {order.contact.street}
-Дом: {order.contact.house}
-Телефон: {order.contact.phone}
+Город: {{ order.contact.city }}
+Улица: {{ order.contact.street }}
+Дом: {{ order.contact.house }}
+Телефон: {{ order.contact.phone }}
 
 Состав заказа:
 {% for item in order_items %}
@@ -21,7 +21,7 @@ Email: {order.user.email}
    Магазин: {{ item.product_info.shop.name }}
    Количество: {{ item.quantity }}
    Цена: {{ item.product_info.price }} руб.
-   Сумма: {{ item.quantity * item.product_info.price }} руб.
+   Сумма: {{ item.item_sum }} руб.
 {% endfor %}
 
 Общая сумма заказа: {{ total_sum }} руб.

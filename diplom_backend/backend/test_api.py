@@ -425,8 +425,10 @@ def test_order_put():
         order_id = orders[0].get('id')
         print(f"Найден заказ id {order_id}")
 
-        # Обновляем заказ
-        update_data = {'contact_id': new_contact_id}
+        # Обновляем заказ. Статус "Собран" для проверки отправки Email
+        
+        update_data = {'contact_id': new_contact_id,'state':'assembled'}
+        #update_data = {'contact_id': new_contact_id,'state':'new'}
         response = requests.put(f"{ORDER_URL}{order_id}/", json=update_data, headers=headers)
         print(f"PUT Order Status: {response.status_code}")
         print(f"PUT Order Response: {response.json()}")
@@ -537,7 +539,7 @@ def test_order_delete():
         return False
 
 if __name__ == "__main__":
-    
+    """
     test_registration()
     
     test_registration_missing_fields()
@@ -563,11 +565,12 @@ if __name__ == "__main__":
     test_contact_crud()
     
     test_order_post()
-    
+    """
     test_order_put()
-    
+    """
     test_order_get_detail()
     
     test_order_get_list()
     
     test_order_delete()
+    """

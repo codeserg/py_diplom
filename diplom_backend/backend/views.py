@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model, authenticate
 from django.db.models import Q
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
+from django.conf import settings
 
 from .serializers import UserSerializer, ProductSerializer, ProductInfoSerializer, ProductParameterSerializer, OrderItemSerializer, OrderSerializer, ContactSerializer
 from .models import Shop, Parameter, Product, ProductInfo, Category, ProductParameter, Order, OrderItem, Contact
@@ -498,7 +499,8 @@ class OrderView(APIView):
                 
                 # Отправляем накладную при изменении статуса на "собран" или "отправлен"
                 new_state = request.data.get('state')
-                if new_state in ['assembled', 'sent'] and order.state != new_state:
+                print(new_state, order.state)
+                if new_state in ['assembled', 'sent']: # and order.state != new_state:
                     order.state = new_state
                     order.save()
                     
@@ -507,7 +509,7 @@ class OrderView(APIView):
                 else:
                     order.save()
                     
-                return Response({'Status': True})
+                return Response({'Status': True,'State':order.state})
                 
             except Order.DoesNotExist:
                 return Response({'Status': False, 'Error': 'Заказ не найден'})
@@ -529,12 +531,11 @@ class OrderView(APIView):
             return Response({'Status': False, 'Error': 'Заказ не найден'})
     
     def send_invoice_email(self, order):
-        """
-        Отправка накладной по email
-        """
+        print(f"Send email order id={order}")
+        
         try:
             # Email администратора (можно вынести в settings)
-            admin_email ="mazanov_sergey@mail.ru"
+            admin_email = getattr(settings, 'ADMIN_EMAIL', 'admin@example.com')
             
             # Тема письма
             subject = f'Накладная для заказа #{order.id} от {order.dt.strftime("%d.%m.%Y")}'
@@ -554,7 +555,6 @@ class OrderView(APIView):
             
             message = render_to_string('emails/order_invoice.txt', context)
             html_message = render_to_string('emails/order_invoice.html', context)
-            
             
             send_mail(
                 subject=subject,

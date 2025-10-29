@@ -142,3 +142,5 @@ REST_FRAMEWORK = {
     ),
 
 }
+ADMIN_EMAIL = "test@admin.ru"
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
