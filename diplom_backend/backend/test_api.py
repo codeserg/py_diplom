@@ -563,11 +563,11 @@ if __name__ == "__main__":
     test_basket_get()
     
     test_contact_crud()
-    
+    """
     test_order_post()
     """
     test_order_put()
-    """
+    
     test_order_get_detail()
     
     test_order_get_list()
