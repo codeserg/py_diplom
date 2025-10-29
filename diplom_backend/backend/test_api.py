@@ -15,7 +15,8 @@ CONTACT_URL =f'{BASE_URL}/api/v1/contact/'
 ORDER_URL =f'{BASE_URL}/api/v1/order/'
 
 def test_registration():
-    """Тест успешной регистрации"""
+    print("\n","-"*32,"Тест регистрации","-"*32)
+
     data = {
         'first_name': 'Иван',
         'last_name': 'Петров',
@@ -35,7 +36,8 @@ def test_registration():
         return None
 
 def test_registration_missing_fields():
-    """Тест регистрации с отсутствующими полями"""
+    print("\n","-"*32,"Тест регистрации с отсутствующими полями","-"*32)
+
     data = {
         'first_name': 'Иван',
         'email': 'test@example.com',
@@ -48,7 +50,8 @@ def test_registration_missing_fields():
     return response
 
 def test_registration_duplicate_email():
-    """Тест регистрации с существующим email"""
+    print("\n","-"*32,"Тест регистрации с существующим email","-"*32)
+
     data = {
         'first_name': 'Петр',
         'last_name': 'Иванов',
@@ -64,7 +67,7 @@ def test_registration_duplicate_email():
     return response
 
 def test_user_login():
-    
+    print("\n","-"*32,"Тест простого логина","-"*32)
     login_credentials = {
         'email': 'ivan.petrov@example.com',
         'password': 'securepassword123'
@@ -89,8 +92,7 @@ def test_user_login():
         return False
 
 def test_login_with_wrong_password():
-    """Тест логина с неправильным паролем"""
-    
+    print("\n","-"*32,"Тест логина с неправильным паролем","-"*32)
     
     wrong_credentials = {
         'email': 'ivan.petrov@example.com',
@@ -109,7 +111,8 @@ def test_login_with_wrong_password():
         return False
 
 def test_account_details():
-    
+    print("\n","-"*32,"Тест изменения данных пользователя","-"*32)
+
     login_data = {
         'email': 'ivan.petrov@example.com',
         'password': 'securepassword123'
@@ -144,7 +147,8 @@ def test_account_details():
     print (get_response_after.json())
 
 def import_test():
-    
+    print("\n","-"*32,"Тест импорта данных через API","-"*32)
+
     login = requests.post(LOGIN_URL , json={
         'email': 'ivan.petrov@example.com',
         'password': 'securepassword123'
@@ -164,7 +168,8 @@ def import_test():
 
 
 def test_product_search():
-
+    print("\n","-"*32,"Тест функций поиска товара","-"*32)
+    
     login_data = {
         'email': 'ivan.petrov@example.com',
         'password': 'securepassword123'
@@ -219,7 +224,7 @@ def test_product_search():
     
 
 def test_basket_post_without_auth():
-    """Тест добавления в корзину без авторизации"""
+    print("\n","-"*32,"Тест добавления в корзину без авторизации","-"*32)
     
     # Данные для добавления в корзину
     items_data = [
@@ -241,7 +246,7 @@ def test_basket_post_without_auth():
         return False
     
 def test_basket_post():
-    """Тест добавления в корзину"""
+    print("\n","-"*32,"Тест добавления в корзину","-"*32)
     
     login_data = {
         'email': 'ivan.petrov@example.com',
@@ -532,20 +537,15 @@ def test_order_delete():
         return False
 
 if __name__ == "__main__":
-    """
-    print("=== Тест регистрации ===")
+    
     test_registration()
     
-    print("\n=== Тест с отсутствующими полями ===")
     test_registration_missing_fields()
     
-    print("\n=== Тест с дубликатом email ===")
     test_registration_duplicate_email()
 
-    print("\n=== Тест логина ===")
     test_user_login()
   
-    print("\n=== Тест с неправильным паролем ===")
     test_login_with_wrong_password()
 
     test_account_details()
@@ -569,5 +569,5 @@ if __name__ == "__main__":
     test_order_get_detail()
     
     test_order_get_list()
-    """
+    
     test_order_delete()
